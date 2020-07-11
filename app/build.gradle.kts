@@ -38,6 +38,7 @@ dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     implementation("androidx.appcompat:appcompat:1.1.0")
     implementation("androidx.constraintlayout:constraintlayout:1.1.3")
+    implementation("androidx.legacy:legacy-support-v4:1.0.0")
 
     testImplementation(Libs.Test.junit)
     androidTestImplementation(Libs.Test.runner)
