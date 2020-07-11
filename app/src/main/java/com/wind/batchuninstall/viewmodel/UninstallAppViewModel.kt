@@ -25,7 +25,7 @@ class UninstallAppViewModel @ViewModelInject constructor(@ApplicationContext pri
         getInstalledApps()
     }
 
-    private fun getInstalledApps() {
+    fun getInstalledApps() {
         viewModelScope.launch {
             _appInfoList.value = withContext(Dispatchers.IO) {
                 val pkgs = applicationContext.packageManager.getInstalledApplications(PackageManager.GET_META_DATA)

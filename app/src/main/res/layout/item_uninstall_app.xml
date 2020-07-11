@@ -13,7 +13,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="@{(v) -> item.onListItemClickListener.onClick(v, item.adapterPosition)}"
+        android:onClick="@{(v) -> item.onListItemClickListener.onClick(v, item.adapterPosition, item)}"
         android:paddingVertical="@dimen/space_small">
 
         <ImageView

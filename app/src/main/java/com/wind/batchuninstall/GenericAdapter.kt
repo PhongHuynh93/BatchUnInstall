@@ -21,15 +21,15 @@ class GenericAdapter<T : ListItemModel>(@LayoutRes val layoutId: Int) :
 
     private val items = mutableListOf<T>()
     private var inflater: LayoutInflater? = null
-    private var onListItemClickListener: OnListItemClickListener? = null
+    private var onListItemClickListener: OnListItemClickListener<T>? = null
 
-    fun addItems(items: List<T>) {
+    fun setItems(items: List<T>) {
         this.items.clear()
         this.items.addAll(items)
         notifyDataSetChanged()
     }
 
-    fun setOnListItemClickListener(onListItemClickListener: OnListItemClickListener?){
+    fun setOnListItemClickListener(onListItemClickListener: OnListItemClickListener<T>){
         this.onListItemClickListener = onListItemClickListener
     }
 
@@ -59,15 +59,14 @@ class GenericAdapter<T : ListItemModel>(@LayoutRes val layoutId: Int) :
 
     }
 
-    interface OnListItemClickListener{
-        fun onClick(view: View, position: Int)
-
+    interface OnListItemClickListener<in T: ListItemModel> {
+        fun onClick(view: View, position: Int, item: T)
     }
 }
 
 abstract class ListItemModel {
     var adapterPosition: Int = -1
-    var onListItemClickListener: GenericAdapter.OnListItemClickListener? = null
+    var onListItemClickListener: GenericAdapter.OnListItemClickListener<*>? = null
 }
 
 
@@ -75,7 +74,7 @@ abstract class ListItemModel {
 fun bindAdapter(recyclerView: RecyclerView, data: List<ListItemModel>?) {
     data?.let {
         val adapter = recyclerView.adapter
-        (adapter as? GenericAdapter<ListItemModel>)?.addItems(it)
+        (adapter as? GenericAdapter<ListItemModel>)?.setItems(it)
     }
 }
 
