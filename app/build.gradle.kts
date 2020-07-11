@@ -75,6 +75,7 @@ dependencies {
 
     // helper class
     implementation(Libs.Helper.timber)
+    implementation(Libs.Helper.dialog)
 
     // rx
     implementation(Libs.Thread.coroutine)

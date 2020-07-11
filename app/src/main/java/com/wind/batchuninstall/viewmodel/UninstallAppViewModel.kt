@@ -21,11 +21,10 @@ class UninstallAppViewModel @ViewModelInject constructor(@ApplicationContext pri
     val appInfoList = _appInfoList
 
     init {
-        Timber.e("init")
         getInstalledApps()
     }
 
-    private fun getInstalledApps() {
+    fun getInstalledApps() {
         viewModelScope.launch {
             _appInfoList.value = withContext(Dispatchers.IO) {
                 val pkgs = applicationContext.packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
@@ -36,7 +35,6 @@ class UninstallAppViewModel @ViewModelInject constructor(@ApplicationContext pri
                         packageManager.getApplicationLabel(it),
                         packageManager.getApplicationIcon(packageName))
                 }
-                Timber.e("install app $appInfoList")
                 appInfoList
             }
         }

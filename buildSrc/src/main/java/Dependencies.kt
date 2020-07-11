@@ -67,6 +67,7 @@ object Libs {
 //        const val firebase = "com.google.firebase:firebase-analytics:17.4.3"
 //        const val crashLytic = "com.google.firebase:firebase-crashlytics:17.1.0"
         const val fbShare = "com.facebook.android:facebook-share:4.40.0"
+        const val dialog = "com.afollestad.material-dialogs:core:3.3.0"
     }
 
     object Thread {
