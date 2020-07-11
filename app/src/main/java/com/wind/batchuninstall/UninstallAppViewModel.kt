@@ -1,13 +1,47 @@
 package com.wind.batchuninstall
 
 import android.content.Context
-import android.util.AttributeSet
+import android.content.pm.PackageManager
+import android.graphics.drawable.Drawable
 import androidx.hilt.lifecycle.ViewModelInject
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import javax.inject.Inject
+import androidx.lifecycle.viewModelScope
+import com.wind.batchuninstall.model.AppInfo
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.*
+import timber.log.Timber
 
 /**
  * Created by Phong Huynh on 7/11/2020.
  */
-class UninstallAppViewModel @ViewModelInject constructor(): ViewModel() {
+class UninstallAppViewModel @ViewModelInject constructor(@ApplicationContext private val applicationContext: Context, private val packageManager: PackageManager):
+    ViewModel() {
+
+    private val _appInfoList = MutableLiveData<List<AppInfo>>()
+    val appInfoList = _appInfoList
+
+    init {
+        Timber.e("init")
+        getInstalledApps()
+    }
+
+    private fun getInstalledApps() {
+        viewModelScope.launch {
+            _appInfoList.value = withContext(Dispatchers.IO) {
+                val pkgs = applicationContext.packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
+                val appInfoList = pkgs.map {
+                    val packageName = it.packageName
+                    AppInfo(
+                        packageName,
+                        packageManager.getApplicationLabel(it),
+                        packageManager.getApplicationIcon(packageName))
+                }
+                Timber.e("install app $appInfoList")
+                appInfoList
+            }
+        }
+
+    }
 }
