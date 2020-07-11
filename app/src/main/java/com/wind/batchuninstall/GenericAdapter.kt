@@ -1,13 +1,16 @@
 package com.wind.batchuninstall
 
+import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.annotation.LayoutRes
 import androidx.databinding.BindingAdapter
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 
 /**
  * Created by Phong Huynh on 7/11/2020.
@@ -74,5 +77,15 @@ fun bindAdapter(recyclerView: RecyclerView, data: List<ListItemModel>?) {
         val adapter = recyclerView.adapter
         (adapter as? GenericAdapter<ListItemModel>)?.addItems(it)
     }
+}
+
+@BindingAdapter("imageUrl")
+fun loadImage(imageView: ImageView, url: String) {
+    Glide.with(imageView.context).load(url).into(imageView)
+}
+
+@BindingAdapter("imageUrl")
+fun loadImage(imageView: ImageView, url: Drawable) {
+    Glide.with(imageView.context).load(url).into(imageView)
 }
 

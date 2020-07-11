@@ -14,12 +14,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:onClick="@{(v) -> item.onListItemClickListener.onClick(v, item.adapterPosition)}"
-        android:paddingVertical="@dimen/space_normal">
+        android:paddingVertical="@dimen/space_small">
 
         <ImageView
             android:id="@+id/imageView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="@dimen/size_imgv_list"
+            android:layout_height="@dimen/size_imgv_list"
+            android:layout_marginStart="@dimen/space_normal"
+            android:layout_marginLeft="@dimen/space_normal"
+            android:scaleType="fitCenter"
+            app:imageUrl="@{item.icon}"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"

@@ -3,6 +3,7 @@ package com.wind.batchuninstall
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.fragment.app.commit
+import com.wind.batchuninstall.view.UninstallAppFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

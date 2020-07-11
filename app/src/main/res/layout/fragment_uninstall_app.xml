@@ -6,14 +6,14 @@
 
         <variable
             name="viewmodel"
-            type="com.wind.batchuninstall.UninstallAppViewModel" />
+            type="com.wind.batchuninstall.viewmodel.UninstallAppViewModel" />
 
     </data>
 
     <FrameLayout xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".UninstallAppFragment">
+        tools:context=".view.UninstallAppFragment">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rcv"
