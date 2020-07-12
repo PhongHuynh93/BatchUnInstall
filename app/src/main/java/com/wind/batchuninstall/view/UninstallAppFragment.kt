@@ -66,8 +66,8 @@ class UninstallAppFragment : Fragment() {
         // handle rcv
         viewDataBinding.lifecycleOwner = viewLifecycleOwner
         viewDataBinding.rcv.apply {
-            val spaceSmall: Int = context.resources.getDimensionPixelOffset(R.dimen.space_small)
-            addItemDecoration(RcvUtil.BaseItemDecoration(spaceSmall))
+            val space: Int = context.resources.getDimensionPixelOffset(R.dimen.space_small)
+            addItemDecoration(RcvUtil.BaseItemDecoration(space))
             adapter = GenericAdapter<AppInfo>(R.layout.item_uninstall_app)
                 .apply {
                     setOnListItemClickListener(object: GenericAdapter.OnListItemClickListener<AppInfo> {

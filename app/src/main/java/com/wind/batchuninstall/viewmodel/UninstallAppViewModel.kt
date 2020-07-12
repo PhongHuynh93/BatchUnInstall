@@ -9,7 +9,6 @@ import androidx.lifecycle.viewModelScope
 import com.wind.batchuninstall.model.AppInfo
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.*
-import timber.log.Timber
 
 /**
  * Created by Phong Huynh on 7/11/2020.
@@ -33,7 +32,9 @@ class UninstallAppViewModel @ViewModelInject constructor(@ApplicationContext pri
                     AppInfo(
                         packageName,
                         packageManager.getApplicationLabel(it),
-                        packageManager.getApplicationIcon(packageName))
+                        packageManager.getApplicationIcon(packageName),
+                        it.processName
+                    )
                 }
                 appInfoList
             }

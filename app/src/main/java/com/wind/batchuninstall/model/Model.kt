@@ -6,4 +6,9 @@ import com.wind.batchuninstall.ListItemModel
 /**
  * Created by Phong Huynh on 7/11/2020.
  */
-data class AppInfo(val packageName: String, val appName: CharSequence, val icon: Drawable): ListItemModel()
+data class AppInfo(
+    val packageName: String,
+    val appName: CharSequence,
+    val icon: Drawable,
+    val processName: String
+): ListItemModel()
