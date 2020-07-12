@@ -14,14 +14,19 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker.PERMISSION_GRANTED
+import androidx.databinding.BindingAdapter
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.afollestad.materialdialogs.MaterialDialog
 import com.wind.batchuninstall.GenericAdapter
+import com.wind.batchuninstall.ListItemModel
 import com.wind.batchuninstall.R
 import com.wind.batchuninstall.databinding.FragmentUninstallAppBinding
 import com.wind.batchuninstall.model.AppInfo
 import com.wind.batchuninstall.util.RcvUtil
+import com.wind.batchuninstall.viewmodel.AppType
 import com.wind.batchuninstall.viewmodel.UninstallAppViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_uninstall_app.*
@@ -77,6 +82,7 @@ class UninstallAppFragment : Fragment() {
 
         // handle rcv
         viewDataBinding.lifecycleOwner = viewLifecycleOwner
+        viewDataBinding.viewPager.adapter = UninstallAppPagerAdapter(this)
         viewDataBinding.rcv.apply {
             val space: Int = context.resources.getDimensionPixelOffset(R.dimen.space_small)
             addItemDecoration(RcvUtil.BaseItemDecoration(space))
@@ -104,5 +110,43 @@ class UninstallAppFragment : Fragment() {
                     })
                 }
         }
+    }
+}
+
+class UninstallAppPagerAdapter(frag: Fragment) : FragmentStateAdapter(frag) {
+    private val data = mutableMapOf<AppType, List<AppInfo>>()
+    override fun getItemCount(): Int {
+        return data.size
+    }
+
+    override fun createFragment(position: Int): Fragment {
+        UninstallAppFragment.newInstance()
+    }
+
+    fun setData(data: Map<AppType, List<AppInfo>>) {
+        this.data.clear()
+        this.data.putAll(data)
+        notifyDataSetChanged()
+    }
+}
+
+
+
+@AndroidEntryPoint
+private class UninstallItemFragment(): Fragment() {
+    companion object {
+        fun newInstance(): Fragment {
+            return UninstallAppFragment()
+        }
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        viewDataBinding = FragmentUninstallAppBinding.inflate(inflater, container, false).apply {
+            viewmodel = viewModel
+        }
+        return viewDataBinding.root
     }
 }

@@ -10,5 +10,6 @@ data class AppInfo(
     val packageName: String,
     val appName: CharSequence,
     val icon: Drawable,
-    val processName: String
+    val processName: String,
+    val isSystemApp: Boolean
 ): ListItemModel()
