@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker.PERMISSION_GRANTED
 import androidx.fragment.app.Fragment
@@ -23,6 +24,7 @@ import com.wind.batchuninstall.model.AppInfo
 import com.wind.batchuninstall.util.RcvUtil
 import com.wind.batchuninstall.viewmodel.UninstallAppViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.android.synthetic.main.fragment_uninstall_app.*
 
 @AndroidEntryPoint
 class UninstallAppFragment : Fragment() {
@@ -45,8 +47,18 @@ class UninstallAppFragment : Fragment() {
         return viewDataBinding.root
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+//        toolbar
+        (requireActivity() as AppCompatActivity).setSupportActionBar(toolbar)
+        (requireActivity() as AppCompatActivity).supportActionBar?.apply {
+            title = getString(R.string.choose_app_uninstall)
+        }
         // register start activity for result
         val uninstallAppRegisterForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
