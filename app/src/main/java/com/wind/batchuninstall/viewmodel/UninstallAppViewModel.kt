@@ -1,7 +1,9 @@
 package com.wind.batchuninstall.viewmodel
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -23,7 +25,7 @@ class UninstallAppViewModel @ViewModelInject constructor(@ApplicationContext pri
         getInstalledApps()
     }
 
-    fun getInstalledApps() {
+    private fun getInstalledApps() {
         viewModelScope.launch {
             _appInfoList.value = withContext(Dispatchers.IO) {
                 val pkgs = applicationContext.packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
@@ -32,8 +34,8 @@ class UninstallAppViewModel @ViewModelInject constructor(@ApplicationContext pri
                     AppInfo(
                         packageName,
                         packageManager.getApplicationLabel(it),
-                        packageManager.getApplicationIcon(packageName),
-                        it.processName
+                        it.processName,
+                        it.flags and ApplicationInfo.FLAG_SYSTEM != 0
                     )
                 }
                 appInfoList

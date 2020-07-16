@@ -5,4 +5,5 @@
     <dimen name="space_small">8dp</dimen>
     <dimen name="space_pretty_small">12dp</dimen>
     <dimen name="space_tiny">4dp</dimen>
+    <dimen name="spacing_large">32dp</dimen>
 </resources>

@@ -3,6 +3,7 @@ package com.wind.batchuninstall.view
 import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -14,17 +15,43 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker.PERMISSION_GRANTED
+import androidx.core.os.bundleOf
+import androidx.databinding.BindingAdapter
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
 import com.afollestad.materialdialogs.MaterialDialog
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 import com.wind.batchuninstall.GenericAdapter
 import com.wind.batchuninstall.R
+import com.wind.batchuninstall.databinding.FragmentItemUninstallAppBinding
 import com.wind.batchuninstall.databinding.FragmentUninstallAppBinding
+import com.wind.batchuninstall.databinding.ItemUninstallAppBinding
 import com.wind.batchuninstall.model.AppInfo
 import com.wind.batchuninstall.util.RcvUtil
 import com.wind.batchuninstall.viewmodel.UninstallAppViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_uninstall_app.*
+import org.jetbrains.annotations.NotNull
+import javax.inject.Inject
+
+private const val NORMAL_POS = 0
+private const val SYSTEM_POS = 1
+
+@BindingAdapter(value = ["bind:pageItems", "bind:tab"])
+fun setViewPagerData(viewPager: ViewPager2, data: List<AppInfo>?, tabLayout: TabLayout) {
+    data?.let {
+        (viewPager.adapter as UninstallAppPagerAdapter).let { adapter ->
+            adapter.setData(it)
+            TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+                tab.text = adapter.getTitle(position)
+            }.attach()
+        }
+    }
+}
 
 @AndroidEntryPoint
 class UninstallAppFragment : Fragment() {
@@ -59,31 +86,103 @@ class UninstallAppFragment : Fragment() {
         (requireActivity() as AppCompatActivity).supportActionBar?.apply {
             title = getString(R.string.choose_app_uninstall)
         }
-        // register start activity for result
-        val uninstallAppRegisterForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                Toast.makeText(requireContext(), "remove app successful", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(requireContext(), "remove app fail", Toast.LENGTH_SHORT).show()
-            }
-            // update list
-            viewModel.getInstalledApps()
-        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val uninstallAppPermissionRegisterForResult = registerForActivityResult(ActivityResultContracts.RequestPermission()){}
             uninstallAppPermissionRegisterForResult.launch(Manifest.permission.REQUEST_DELETE_PACKAGES)
         }
 
-        // handle rcv
+        viewDataBinding.lifecycleOwner = viewLifecycleOwner
+        viewDataBinding.viewPager.adapter = UninstallAppPagerAdapter(this)
+    }
+}
+
+private const val SYSTEM_APP_POS = 1
+private const val NORMAL_APP_POS = 0
+class UninstallAppPagerAdapter(frag: Fragment) : FragmentStateAdapter(frag) {
+    private var mapData = mapOf<Int, List<AppInfo>>()
+
+    // system apps and normal apps
+    override fun getItemCount(): Int {
+        return mapData.size
+    }
+
+    override fun createFragment(position: Int): Fragment {
+        return UninstallItemFragment.newInstance(mapData[position])
+    }
+
+    fun setData(data: List<AppInfo>) {
+        val appBySystemMap = mutableMapOf<Int, MutableList<AppInfo>>()
+        for (app in data) {
+            val key = if (app.isSystemApp) {
+                SYSTEM_APP_POS
+            } else {
+                NORMAL_APP_POS
+            }
+            if (appBySystemMap.containsKey(key)) {
+                appBySystemMap[key]!!.add(app)
+            } else {
+                val listSystemApp = mutableListOf<AppInfo>()
+                listSystemApp.add(app)
+                appBySystemMap[key] = listSystemApp
+            }
+        }
+        this.mapData = appBySystemMap
+        notifyDataSetChanged()
+    }
+
+    fun getTitle(pos: Int) = when (pos) {
+        NORMAL_APP_POS -> "Normal App"
+        else -> "System App"
+    }
+}
+
+
+private const val EXTRA_DATA = "xData"
+@AndroidEntryPoint
+class UninstallItemFragment(): Fragment() {
+    private lateinit var viewDataBinding: FragmentItemUninstallAppBinding
+    @Inject
+    lateinit var uninstallAdapter: UninstallAppAdapter
+
+    companion object {
+        fun newInstance(data: List<AppInfo>?): Fragment {
+            return UninstallItemFragment().apply {
+                arguments = bundleOf(EXTRA_DATA to data)
+            }
+        }
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        viewDataBinding = FragmentItemUninstallAppBinding.inflate(inflater, container, false).apply {
+            val data = requireArguments().getParcelableArrayList<AppInfo>(EXTRA_DATA)
+            setData(data)
+        }
+        return viewDataBinding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        // register start activity for result
+        val uninstallAppRegisterForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                // TODO: 7/14/2020 scan again
+                Toast.makeText(requireContext(), "remove app successful", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(requireContext(), "remove app fail", Toast.LENGTH_SHORT).show()
+            }
+        }
         viewDataBinding.lifecycleOwner = viewLifecycleOwner
         viewDataBinding.rcv.apply {
             val space: Int = context.resources.getDimensionPixelOffset(R.dimen.space_small)
             addItemDecoration(RcvUtil.BaseItemDecoration(space))
-            adapter = GenericAdapter<AppInfo>(R.layout.item_uninstall_app)
+            adapter = uninstallAdapter
                 .apply {
-                    setOnListItemClickListener(object: GenericAdapter.OnListItemClickListener<AppInfo> {
-                        override fun onClick(view: View, position: Int, item: AppInfo) {
+                    callback = object: UninstallAppAdapter.Callback {
+                        override fun onClick(pos: Int, item: AppInfo) {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && ContextCompat.checkSelfPermission(requireContext(), Manifest
                                     .permission.REQUEST_DELETE_PACKAGES) != PERMISSION_GRANTED) {
                                 Toast.makeText(requireContext(), "Please allow delete package permission", Toast.LENGTH_SHORT).show()
@@ -101,8 +200,49 @@ class UninstallAppFragment : Fragment() {
                                 }
                             }
                         }
-                    })
+
+                    }
                 }
         }
     }
+}
+
+class UninstallAppAdapter @Inject constructor(private val pk: PackageManager): RecyclerView.Adapter<ViewHolder>() {
+    private var data: List<AppInfo> = emptyList()
+    var callback: Callback? = null
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        return ViewHolder(ItemUninstallAppBinding.inflate(LayoutInflater.from(parent.context), parent, false).apply {
+            packageManager = pk
+        }).apply {
+            itemView.setOnClickListener {
+                val pos = adapterPosition
+                if (pos >= 0) {
+                    callback?.onClick(pos, data[pos])
+                }
+            }
+        }
+    }
+
+    override fun getItemCount(): Int {
+        return data.size
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        holder.binding.item = data[position]
+        holder.binding.executePendingBindings()
+    }
+
+    fun setData(data: List<AppInfo>) {
+        this.data = data
+        notifyDataSetChanged()
+    }
+
+    interface Callback {
+        fun onClick(pos: Int, appInfo: AppInfo)
+    }
+}
+
+class ViewHolder(val binding: ItemUninstallAppBinding): RecyclerView.ViewHolder(binding.root) {
+
 }

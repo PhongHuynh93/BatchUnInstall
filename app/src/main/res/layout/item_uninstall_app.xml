@@ -6,6 +6,10 @@
     <data>
 
         <variable
+            name="packageManager"
+            type="android.content.pm.PackageManager" />
+
+        <variable
             name="item"
             type="com.wind.batchuninstall.model.AppInfo" />
     </data>
@@ -24,7 +28,7 @@
             android:layout_marginStart="@dimen/space_normal"
             android:layout_marginLeft="@dimen/space_normal"
             android:scaleType="fitCenter"
-            app:imageUrl="@{item.icon}"
+            app:imageUrl="@{item.getIcon(packageManager)}"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
