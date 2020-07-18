@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,14 +19,14 @@ import androidx.core.content.PermissionChecker.PERMISSION_GRANTED
 import androidx.core.os.bundleOf
 import androidx.databinding.BindingAdapter
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.adapter.FragmentViewHolder
 import androidx.viewpager2.widget.ViewPager2
 import com.afollestad.materialdialogs.MaterialDialog
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
-import com.wind.batchuninstall.GenericAdapter
 import com.wind.batchuninstall.R
 import com.wind.batchuninstall.databinding.FragmentItemUninstallAppBinding
 import com.wind.batchuninstall.databinding.FragmentUninstallAppBinding
@@ -35,20 +36,19 @@ import com.wind.batchuninstall.util.RcvUtil
 import com.wind.batchuninstall.viewmodel.UninstallAppViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_uninstall_app.*
-import org.jetbrains.annotations.NotNull
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
-
-private const val NORMAL_POS = 0
-private const val SYSTEM_POS = 1
 
 @BindingAdapter(value = ["bind:pageItems", "bind:tab"])
 fun setViewPagerData(viewPager: ViewPager2, data: List<AppInfo>?, tabLayout: TabLayout) {
     data?.let {
         (viewPager.adapter as UninstallAppPagerAdapter).let { adapter ->
             adapter.setData(it)
-            TabLayoutMediator(tabLayout, viewPager) { tab, position ->
-                tab.text = adapter.getTitle(position)
-            }.attach()
+            if (adapter.titleInited.compareAndSet(false, true)) {
+                TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+                    tab.text = adapter.getTitle(position)
+                }.attach()
+            }
         }
     }
 }
@@ -62,7 +62,7 @@ class UninstallAppFragment : Fragment() {
     }
 
     private lateinit var viewDataBinding: FragmentUninstallAppBinding
-    private val viewModel by viewModels<UninstallAppViewModel>()
+    private val viewModel by activityViewModels<UninstallAppViewModel>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -100,6 +100,8 @@ class UninstallAppFragment : Fragment() {
 private const val SYSTEM_APP_POS = 1
 private const val NORMAL_APP_POS = 0
 class UninstallAppPagerAdapter(frag: Fragment) : FragmentStateAdapter(frag) {
+    private val fragManager = frag.childFragmentManager
+    var titleInited = AtomicBoolean()
     private var mapData = mapOf<Int, List<AppInfo>>()
 
     // system apps and normal apps
@@ -109,6 +111,12 @@ class UninstallAppPagerAdapter(frag: Fragment) : FragmentStateAdapter(frag) {
 
     override fun createFragment(position: Int): Fragment {
         return UninstallItemFragment.newInstance(mapData[position])
+    }
+
+    override fun onBindViewHolder(holder: FragmentViewHolder, position: Int, payloads: MutableList<Any>) {
+        super.onBindViewHolder(holder, position, payloads)
+        val fragment: UninstallItemFragment? = fragManager.findFragmentByTag("f$position") as UninstallItemFragment?
+        fragment?.update(mapData[position])
     }
 
     fun setData(data: List<AppInfo>) {
@@ -145,6 +153,8 @@ class UninstallItemFragment(): Fragment() {
     @Inject
     lateinit var uninstallAdapter: UninstallAppAdapter
 
+    private val vmUninstallApp by activityViewModels<UninstallAppViewModel>()
+
     companion object {
         fun newInstance(data: List<AppInfo>?): Fragment {
             return UninstallItemFragment().apply {
@@ -171,6 +181,7 @@ class UninstallItemFragment(): Fragment() {
             if (result.resultCode == Activity.RESULT_OK) {
                 // TODO: 7/14/2020 scan again
                 Toast.makeText(requireContext(), "remove app successful", Toast.LENGTH_SHORT).show()
+                vmUninstallApp.scanApp()
             } else {
                 Toast.makeText(requireContext(), "remove app fail", Toast.LENGTH_SHORT).show()
             }
@@ -203,6 +214,13 @@ class UninstallItemFragment(): Fragment() {
 
                     }
                 }
+        }
+    }
+
+    fun update(list: List<AppInfo>?) {
+        Log.e("TAG", "update")
+        list?.let {
+            uninstallAdapter.setData(list)
         }
     }
 }

@@ -43,4 +43,8 @@ class UninstallAppViewModel @ViewModelInject constructor(@ApplicationContext pri
         }
 
     }
+
+    fun scanApp() {
+        getInstalledApps()
+    }
 }

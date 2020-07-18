@@ -18,7 +18,6 @@
         app:layout_optimizationLevel="standard|dimensions|ratio|groups|graph|graph_wrap"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="@{(v) -> item.onListItemClickListener.onClick(v, item.adapterPosition, item)}"
         android:paddingVertical="@dimen/space_pretty_small"
         android:background="?attr/selectableItemBackground">
 
