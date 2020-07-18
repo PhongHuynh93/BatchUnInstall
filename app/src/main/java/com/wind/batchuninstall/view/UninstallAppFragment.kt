@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -44,7 +43,7 @@ fun setViewPagerData(viewPager: ViewPager2, data: List<AppInfo>?, tabLayout: Tab
     data?.let {
         (viewPager.adapter as UninstallAppPagerAdapter).let { adapter ->
             adapter.setData(it)
-            if (adapter.titleInited.compareAndSet(false, true)) {
+            if (adapter.titleInit.compareAndSet(false, true)) {
                 TabLayoutMediator(tabLayout, viewPager) { tab, position ->
                     tab.text = adapter.getTitle(position)
                 }.attach()
@@ -101,7 +100,7 @@ private const val SYSTEM_APP_POS = 1
 private const val NORMAL_APP_POS = 0
 class UninstallAppPagerAdapter(frag: Fragment) : FragmentStateAdapter(frag) {
     private val fragManager = frag.childFragmentManager
-    var titleInited = AtomicBoolean()
+    var titleInit = AtomicBoolean()
     private var mapData = mapOf<Int, List<AppInfo>>()
 
     // system apps and normal apps
@@ -179,7 +178,6 @@ class UninstallItemFragment(): Fragment() {
         // register start activity for result
         val uninstallAppRegisterForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
-                // TODO: 7/14/2020 scan again
                 Toast.makeText(requireContext(), "remove app successful", Toast.LENGTH_SHORT).show()
                 vmUninstallApp.scanApp()
             } else {
@@ -218,10 +216,7 @@ class UninstallItemFragment(): Fragment() {
     }
 
     fun update(list: List<AppInfo>?) {
-        Log.e("TAG", "update")
-        list?.let {
-            uninstallAdapter.setData(list)
-        }
+        viewDataBinding.data = list
     }
 }
 
